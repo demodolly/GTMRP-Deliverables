@@ -16,6 +16,9 @@ from project_summary_content import (
     PROJECT_SHORT,
     REGISTER_SOURCE_KEYS,
 )
+from generate_uif_summary_slide import build_uif_slide
+
+UIF_KEY = "Unified Intelligence Framework (UIF)"
 
 REGISTER = Path("/workspace/BRD_Requirements_Register.xlsx")
 SRC_DECK = Path("/workspace/GTM Performance & Readiness Project Update - August 2026.pptx")
@@ -139,6 +142,11 @@ def main():
         data = PROJECTS[key]
         short = PROJECT_SHORT.get(key, key)
         subtitle = status_line(reg_stats.get(key, Counter()))
+
+        if key == UIF_KEY:
+            # Single three-zone summary slide (Phase 1 | Phase 2 | Risks)
+            build_uif_slide(prs)
+            continue
 
         add_section_slide(prs, short, subtitle)
 
