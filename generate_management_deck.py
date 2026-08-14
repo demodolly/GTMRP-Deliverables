@@ -16,7 +16,7 @@ from project_summary_content import (
     PROJECT_SHORT,
     REGISTER_SOURCE_KEYS,
 )
-from generate_uif_summary_slide import build_ctt_alignment_slide, build_uif_slide
+from generate_uif_summary_slide import build_ctt_alignment_slide, build_pivot_slide, build_uif_slide
 
 UIF_KEY = "Unified Intelligence Framework (UIF)"
 CTT_ALIGNMENT_KEY = "DTID & CTT Attribution Data Alignment"
@@ -146,6 +146,7 @@ def main():
 
         if key == UIF_KEY:
             build_uif_slide(prs)
+            build_pivot_slide(prs)
             continue
 
         if key == CTT_ALIGNMENT_KEY:

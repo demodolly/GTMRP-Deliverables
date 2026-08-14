@@ -132,3 +132,67 @@ CTT_ALIGNMENT_SLIDE = SummarySlideContent(
         "schedule GTMPR historical audit for CTT006/018; resolve GTMRP architecture to lock CTT bridge field design."
     ),
 )
+
+UIF_TO_CTT_PIVOT_SLIDE = SummarySlideContent(
+    title="Why We Pivoted: UIF Remains the Goal — CTT Alignment Is the FY27 Path",
+    goal=(
+        "Our strategic destination is unchanged — full UIF delivery with Workfront Universal Key attribution. "
+        "We prioritised CTT Attribution Data Alignment because FY27 reporting, lead creation, and hybrid "
+        "team coverage cannot wait for UIF Phase 2 while One Cisco CRM and legacy dependencies block progress."
+    ),
+    context_heading="Goal Has Not Changed — Sequence Has (UIF Target State)",
+    context_body=(
+        "UIF Phase 1 + 2: Move from legacy CCID/DTID to automated Workfront IDs, UTM governance, and "
+        "Universal Key attribution across Marketo, Eloqua, AEM, and SFDC.  "
+        "This remains the North Star — CTT bridge is the interim delivery vehicle for FY27."
+    ),
+    benefits_label="What the Pivot Delivers (While UIF Continues)",
+    benefits=[
+        "FY27 reporting continuity — DOPT and Reporting Teams get data now, not after full UIF",
+        "Workfront-first / CTT-fallback logic — same attributes, future-proofed for UIF target state",
+        "No SFDC or Tray changes — stays inside One Cisco CRM constraints",
+        "Protects UIF investment — aligned field model avoids rework when Phase 2 resumes",
+    ],
+    risk_heading="Why Full UIF Could Not Proceed Now — Forces Behind the Pivot",
+    barrier_intro=(
+        "We are still delivering UIF Phase 1 capabilities, but these constraints required us to "
+        "prioritise CTT Attribution Data Alignment as the FY27 critical path:"
+    ),
+    barriers=[
+        BarrierStakeholder(
+            "One Cisco CRM freeze — no SFDC or Tray changes in FY27 H1",
+            "Sales, SFDC BCO, UIF Phase 2 teams",
+            "UIF Phase 2 SFDC push blocked; seller-facing strategic data cannot land in CRM; full UIF automation paused.",
+        ),
+        BarrierStakeholder(
+            "CCID/DTID still mandatory for SFDC lead creation, MSP & Last Touch reporting",
+            "Marketing, Reporting, GTMPR",
+            "Cannot retire legacy tagging or go Workfront-only; UIF cannot cut over without breaking lead creation and core reports.",
+        ),
+        BarrierStakeholder(
+            "Incomplete Workfront adoption — not all teams onboarded",
+            "Marketing, CTT requestors, non-Workfront teams",
+            "A Workfront-only UIF solution would exclude non-Workfront activity from FY27 reporting — unacceptable for hybrid FY27.",
+        ),
+        BarrierStakeholder(
+            "UIF Phase 1 incomplete — PUB002, UTM002 deferred, 39 requirements Not Started",
+            "Publishing, Web, GTMPR, Phase 2 teams",
+            "Phase 2 cannot start until Phase 1 foundations complete; pivot keeps FY27 delivery moving in parallel.",
+        ),
+        BarrierStakeholder(
+            "Reporting needs FY27 channel & strategic attributes this year",
+            "Reporting, DOPT, GTMPR",
+            "Waiting for full UIF would delay FY27 attribution models; CTT bridge + DTID alignment (Complete) delivers data now.",
+        ),
+        BarrierStakeholder(
+            "Business-Ready Dataset & North Star architecture unresolved",
+            "Data Engineering, Reporting, GTMPR",
+            "Field definitions keep shifting; CTT bridge locks FY27 attributes while GTMRP and North Star are finalised.",
+        ),
+    ],
+    management_ask=(
+        "Acknowledge FY27 as an intentional bridge year (not a programme failure); confirm CTT alignment "
+        "as sequenced delivery supporting UIF; provide OCC engagement timeline and GTMRP capacity to "
+        "resume full UIF Phase 2 when dependencies clear."
+    ),
+)

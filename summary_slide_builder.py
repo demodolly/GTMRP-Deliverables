@@ -39,6 +39,8 @@ class SummarySlideContent:
     barrier_intro: str
     barriers: Sequence[BarrierStakeholder]
     management_ask: str
+    risk_heading: str = "Barriers & Stakeholder Impacts — Why Delivery Is Constrained"
+    benefits_label: str = "Key Business Benefits"
 
 
 def _set_margin(tf, top=0.04, bottom=0.04, left=0.07, right=0.07):
@@ -131,7 +133,7 @@ def build_summary_slide(prs: Presentation, content: SummarySlideContent):
 
     p = tfc.add_paragraph()
     p.space_before = Pt(5)
-    _add_run(p, "Key Business Benefits: ", size=8, bold=True, color=NAVY)
+    _add_run(p, content.benefits_label + ": ", size=8, bold=True, color=NAVY)
     _add_run(p, "  •  ".join(content.benefits), size=7.5, color=MID)
 
     risk_top = ctx_top + ctx_h + Inches(0.08)
@@ -144,7 +146,7 @@ def build_summary_slide(prs: Presentation, content: SummarySlideContent):
 
     h = tfr.paragraphs[0]
     _add_run(h, "⚠  ", size=13, bold=True, color=ACCENT)
-    _add_run(h, "Barriers & Stakeholder Impacts — Why Delivery Is Constrained", size=12, bold=True, color=NAVY)
+    _add_run(h, content.risk_heading, size=12, bold=True, color=NAVY)
 
     p = tfr.add_paragraph()
     p.space_before = Pt(2)

@@ -8,7 +8,11 @@ from pathlib import Path
 from pptx import Presentation
 
 from summary_slide_builder import build_summary_slide
-from summary_slide_content import CTT_ALIGNMENT_SLIDE, UIF_SLIDE
+from summary_slide_content import (
+    CTT_ALIGNMENT_SLIDE,
+    UIF_SLIDE,
+    UIF_TO_CTT_PIVOT_SLIDE,
+)
 
 DECK = Path("/workspace/GTM Performance & Readiness Project Update - August 2026.pptx")
 
@@ -19,6 +23,10 @@ def build_uif_slide(prs: Presentation):
 
 def build_ctt_alignment_slide(prs: Presentation):
     return build_summary_slide(prs, CTT_ALIGNMENT_SLIDE)
+
+
+def build_pivot_slide(prs: Presentation):
+    return build_summary_slide(prs, UIF_TO_CTT_PIVOT_SLIDE)
 
 
 def build_standalone(content, output: Path):
@@ -35,3 +43,4 @@ def build_standalone(content, output: Path):
 if __name__ == "__main__":
     build_standalone(UIF_SLIDE, Path("/workspace/UIF_Summary_Slide.pptx"))
     build_standalone(CTT_ALIGNMENT_SLIDE, Path("/workspace/CTT_Attribution_Data_Alignment_Summary_Slide.pptx"))
+    build_standalone(UIF_TO_CTT_PIVOT_SLIDE, Path("/workspace/UIF_to_CTT_Pivot_Summary_Slide.pptx"))
