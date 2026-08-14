@@ -10,38 +10,41 @@ from openpyxl import load_workbook
 from pptx import Presentation
 from pptx.util import Pt
 
-from project_summary_content import PROJECT_ORDER, PROJECTS, PROJECT_SHORT
+from project_summary_content import (
+    PROJECT_ORDER,
+    PROJECTS,
+    PROJECT_SHORT,
+    REGISTER_SOURCE_KEYS,
+)
 
 REGISTER = Path("/workspace/BRD_Requirements_Register.xlsx")
 SRC_DECK = Path("/workspace/GTM Performance & Readiness Project Update - August 2026.pptx")
 OUT_DECK = Path("/workspace/GTM Performance & Readiness Project Update - August 2026.pptx")
-
-# Map register project names to summary keys
-REGISTER_TO_SUMMARY = {
-    "Unified Intelligence Framework (UIF) - Phase 1": "Unified Intelligence Framework (UIF) - Phase 1",
-    "Unified Intelligence Framework (UIF) - Phase 2": "Unified Intelligence Framework (UIF) - Phase 2",
-    "DTID Channel Alignment / Reporting Channel": "DTID Channel Alignment / Reporting Channel",
-    "CTT & CTT Request Portal FY27 Updates": "CTT & CTT Request Portal FY27 Updates",
-    "Workfront & CTT Integration POC": "Workfront & CTT Integration POC",
-    "Workfront Business-Ready Dataset (GTMRP)": "Workfront Business-Ready Dataset (GTMRP)",
-    "CTT Decommission": "CTT Decommission",
-}
 
 
 def load_register_stats():
     wb = load_workbook(REGISTER, read_only=True)
     ws = wb["Requirements Register"]
     headers = [ws.cell(1, c).value for c in range(1, ws.max_column + 1)]
-    stats = defaultdict(Counter)
+    by_brd = defaultdict(Counter)
     for r in range(2, ws.max_row + 1):
         row = {h: ws.cell(r, c + 1).value for c, h in enumerate(headers)}
         if not row.get("Requirement ID"):
             continue
         proj = row["Project / BRD"]
         st = row.get("Status")
-        stats[proj][str(st if st else "Not Started")] += 1
-        stats[proj]["_total"] += 1
-    return stats
+        by_brd[proj][str(st if st else "Not Started")] += 1
+        by_brd[proj]["_total"] += 1
+
+    # Roll up to portfolio projects
+    portfolio = {}
+    for key, sources in REGISTER_SOURCE_KEYS.items():
+        combined = Counter()
+        for src in sources:
+            for k, v in by_brd[src].items():
+                combined[k] += v
+        portfolio[key] = combined
+    return portfolio
 
 
 def trim_slides_after(prs: Presentation, keep: int) -> None:
@@ -98,7 +101,8 @@ def add_section_slide(prs, title, subtitle=""):
 
 def status_line(stats: Counter) -> str:
     total = stats.get("_total", 0)
-    tracked = total - stats.get("Not Started", 0) - stats.get("blank", 0)
+    ns = stats.get("Not Started", 0) + stats.get("blank", 0)
+    tracked = total - ns
     complete = stats.get("Complete", 0)
     in_flight = stats.get("In Progress", 0) + stats.get("In Review", 0)
     return f"Register: {total} reqs | {complete} Complete | {in_flight} In Progress/In Review | {tracked} tracked"
@@ -111,68 +115,43 @@ def main():
     keep = 3
     trim_slides_after(prs, keep)
 
-    # Executive overview
     add_section_slide(prs, "Programme Overview", "GTM Performance & Readiness — August 2026")
 
     total_reqs = sum(s.get("_total", 0) for s in reg_stats.values())
     total_complete = sum(s.get("Complete", 0) for s in reg_stats.values())
-    total_in_prog = sum(s.get("In Progress", 0) + s.get("In Review", 0) for s in reg_stats.values())
+    total_in_prog = sum(
+        s.get("In Progress", 0) + s.get("In Review", 0) for s in reg_stats.values()
+    )
 
     add_content_slide(
         prs,
         19,
-        "Portfolio context — delivering under upstream uncertainty",
+        "Portfolio context — 5 programmes, delivering under upstream uncertainty",
         [
-            f"{total_reqs} requirements across 7 programmes ({total_complete} Complete, {total_in_prog} In Progress/In Review)",
-            "We are actively delivering — but roadblocks from One Cisco CRM, Adobe North Star, and Business-Ready Dataset uncertainty force repeated pivots",
-            "Each following section follows: Description → Goal → Benefits → Barriers & Business Impacts",
-            "Source documents: Project Summary.docx + BRD_Requirements_Register.xlsx",
+            f"{total_reqs} requirements across 5 portfolio programmes ({total_complete} Complete, {total_in_prog} In Progress/In Review)",
+            "Programmes: UIF (Phase 1+2) | DTID & CTT Alignment | Workfront–CTT POC | Business-Ready Dataset | CTT Decommission",
+            "Roadblocks from One Cisco CRM, Adobe North Star, and Business-Ready Dataset uncertainty force repeated pivots",
+            "Each section: Description → Goal → Benefits → Barriers & Business Impacts",
         ],
     )
 
-    # Per-project sections (4 slides each)
     for key in PROJECT_ORDER:
         data = PROJECTS[key]
         short = PROJECT_SHORT.get(key, key)
-
-        # Find matching register stats
-        reg_key = next((k for k, v in REGISTER_TO_SUMMARY.items() if v == key), None)
-        subtitle = status_line(reg_stats.get(reg_key, Counter())) if reg_key else ""
+        subtitle = status_line(reg_stats.get(key, Counter()))
 
         add_section_slide(prs, short, subtitle)
 
-        add_content_slide(
-            prs,
-            19,
-            f"{short} — Project Description",
-            [data["description"]],
-        )
-
-        add_content_slide(
-            prs,
-            19,
-            f"{short} — Project Goal",
-            [data["goal"]],
-        )
-
-        add_content_slide(
-            prs,
-            19,
-            f"{short} — Benefits to the Business",
-            data["benefits"],
-        )
+        add_content_slide(prs, 19, f"{short} — Project Description", [data["description"]])
+        add_content_slide(prs, 19, f"{short} — Project Goal", [data["goal"]])
+        add_content_slide(prs, 19, f"{short} — Benefits to the Business", data["benefits"])
 
         barrier_bullets = []
         for pair in data["barrier_impacts"]:
             barrier_bullets.append(f"Barrier: {pair['barrier']}")
             barrier_bullets.append(f"→ Impact: {pair['impact']}")
 
-        add_content_slide(
-            prs,
-            19,
-            f"{short} — Barriers & Business Impacts",
-            barrier_bullets,
-        )
+        add_content_slide(prs, 19, f"{short} — Barriers & Business Impacts", barrier_bullets)
 
     add_section_slide(prs, "Appendix", "Living documents")
     add_content_slide(
@@ -182,8 +161,8 @@ def main():
         [
             "Project Summary.docx — run: python3 generate_project_summary.py",
             "Management deck — run: python3 generate_management_deck.py",
-            "Requirements Register — update Status, Barriers, Dependencies, Impact, Owner as delivery progresses",
-            "Priority: complete tracking for Business-Ready Dataset and Workfront–CTT POC (0% tracked today)",
+            "Requirements Register — underlying BRD-level detail (208 reqs across 7 BRDs)",
+            "Portfolio view combines related BRDs — update project_summary_content.py to adjust narrative",
         ],
     )
 

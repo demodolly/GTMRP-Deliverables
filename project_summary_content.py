@@ -2,212 +2,159 @@
 
 from __future__ import annotations
 
+# Five portfolio projects (combined from original BRD/programme split)
 PROJECT_ORDER = [
-    "Unified Intelligence Framework (UIF) - Phase 1",
-    "Unified Intelligence Framework (UIF) - Phase 2",
-    "DTID Channel Alignment / Reporting Channel",
-    "CTT & CTT Request Portal FY27 Updates",
+    "Unified Intelligence Framework (UIF)",
+    "DTID & CTT Attribution Data Alignment",
     "Workfront & CTT Integration POC",
-    "Workfront Business-Ready Dataset (GTMRP)",
+    "Business-Ready Workfront Dataset (GTMRP)",
     "CTT Decommission",
 ]
 
 PROJECT_SHORT = {
-    "Unified Intelligence Framework (UIF) - Phase 1": "UIF Phase 1",
-    "Unified Intelligence Framework (UIF) - Phase 2": "UIF Phase 2",
-    "DTID Channel Alignment / Reporting Channel": "DTID Channel Alignment",
-    "CTT & CTT Request Portal FY27 Updates": "Workfront to CTT Attribution Data Alignment",
+    "Unified Intelligence Framework (UIF)": "Unified Intelligence Framework (UIF)",
+    "DTID & CTT Attribution Data Alignment": "DTID & CTT Attribution Data Alignment",
     "Workfront & CTT Integration POC": "Workfront & CTT Integration POC",
-    "Workfront Business-Ready Dataset (GTMRP)": "Business-Ready Workfront Dataset",
+    "Business-Ready Workfront Dataset (GTMRP)": "Business-Ready Workfront Dataset",
     "CTT Decommission": "CTT Decommission",
 }
 
-# Each project: description, goal, benefits[], barrier_impacts[] as {barrier, impact}
+# Register BRD names that roll up into each portfolio project (for stats)
+REGISTER_SOURCE_KEYS = {
+    "Unified Intelligence Framework (UIF)": [
+        "Unified Intelligence Framework (UIF) - Phase 1",
+        "Unified Intelligence Framework (UIF) - Phase 2",
+    ],
+    "DTID & CTT Attribution Data Alignment": [
+        "DTID Channel Alignment / Reporting Channel",
+        "CTT & CTT Request Portal FY27 Updates",
+    ],
+    "Workfront & CTT Integration POC": [
+        "Workfront & CTT Integration POC",
+    ],
+    "Business-Ready Workfront Dataset (GTMRP)": [
+        "Workfront Business-Ready Dataset (GTMRP)",
+    ],
+    "CTT Decommission": [
+        "CTT Decommission",
+    ],
+}
+
 PROJECTS = {
-    "Unified Intelligence Framework (UIF) - Phase 1": {
+    "Unified Intelligence Framework (UIF)": {
         "description": (
-            "Phase 1 of the Unified Intelligence Framework establishes the strategic and technical "
-            "foundation to align marketing spend with revenue across Marketo and Eloqua. It enforces "
-            "consistent UTM formatting standards across all campaign generation tools (Workfront, "
-            "Stensul, manual UTM Builder), captures and preserves utm_id, utm_medium, and utm_source "
-            "at every lead touchpoint regardless of marketing automation platform, and deploys dual "
-            "ingestion to support legacy CCID/DTID identifiers alongside new UTM schemas for continued "
-            "attribution and operational reporting during the transition to Workfront-based tracking."
+            "The Unified Intelligence Framework is a two-phase programme to align marketing spend "
+            "with revenue across Marketo and Eloqua. Phase 1 establishes the hybrid foundation: "
+            "consistent UTM formatting across all campaign generation tools (Workfront, Stensul, "
+            "manual UTM Builder), capture and preservation of utm_id, utm_medium, and utm_source at "
+            "every lead touchpoint, and dual ingestion supporting legacy CCID/DTID alongside new "
+            "UTM schemas. Phase 2 transitions to Workfront IDs as the Universal Key — auto-generating "
+            "Channel and Content IDs, embedding Content IDs on all AEM pages, writing last-touch "
+            "Content ID into form submissions, and preparing strategic Workfront data for SFDC when "
+            "One Cisco CRM permits."
         ),
         "goal": (
-            "Deliver a hybrid-ready tagging and ingestion layer so FY27 reporting, lead attribution, "
-            "and operational dashboards continue to function while the organisation transitions from "
-            "Drive To ID / CTT identifiers to industry-standard UTM parameters and Workfront IDs — "
-            "without breaking existing Salesforce, MSP, or Last Touch reporting."
+            "Deliver end-to-end marketing intelligence from hybrid-ready tagging (Phase 1) through "
+            "Universal Key attribution (Phase 2) — achieving Zero-Latency Deployment Readiness so "
+            "that approved Workfront activations flow automatically through AEM, MarTech, Tray, and "
+            "SFDC, replacing Drive To ID / CTT dependency with industry-standard parameters without "
+            "breaking FY27 reporting, Salesforce lead creation, MSP, or Last Touch reporting."
         ),
         "benefits": [
-            "Consistent UTM governance across all online and offline campaign generation tools.",
-            "Preserved driving UTMs and legacy CCID/DTID at lead creation — accurate channel and initiative attribution today.",
-            "Dual ingestion enables parallel legacy and modern reporting — no big-bang cutover risk.",
-            "Standardized Snowflake publishing format — reporting teams can consume one schema.",
-            "Foundation for Phase 2 Universal Key (Workfront Content ID) without re-engineering Phase 1 work.",
-            "Reduced lead rejection risk through improved attribution data quality at source.",
+            "Phase 1: Consistent UTM governance and dual ingestion — legacy and modern reporting in parallel, no big-bang cutover.",
+            "Phase 1: Preserved driving UTMs and legacy IDs at lead creation — accurate attribution today.",
+            "Phase 1: Standardized Snowflake publishing — one schema for reporting teams.",
+            "Phase 2: Workfront auto-generates Channel and Content IDs — eliminates manual ID creation.",
+            "Phase 2: Content ID on every AEM page and form submission — full journey and content attribution.",
+            "Phase 2: Identical Universal Key fields across Marketo and Eloqua — consistent MAP ingestion.",
+            "Combined: Direct path to Adobe North Star — marketing intelligence captured at source.",
+            "Combined: Reduced lead rejection through improved attribution data quality.",
         ],
         "barrier_impacts": [
             {
-                "barrier": "Continued mandatory use of CCID & DTID for SFDC lead creation, MSP, and Last Touch reporting.",
-                "impact": "Cannot fully transition to UTM/Channel ID — teams must maintain strict manual governance across Workfront, URL Builder, Adobe, and Ace Reporting; dual maintenance cost persists.",
+                "barrier": "CCID & DTID still mandatory for SFDC lead creation, MSP, and Last Touch reporting.",
+                "impact": "Cannot fully transition to UTM/Channel ID — strict manual governance persists across Workfront, URL Builder, Adobe, and Ace Reporting.",
             },
             {
                 "barrier": "Not all marketing teams onboarded to Workfront — mixed operating model.",
-                "impact": "Phase 1 benefits only partially realised; non-Workfront teams still depend on CTT IDs and legacy processes, slowing unified attribution.",
+                "impact": "UIF benefits only partially realised; non-Workfront teams still depend on CTT IDs and legacy processes.",
             },
             {
-                "barrier": "Adobe North Star transition gated by Reporting Team FY27 refresh schedule.",
-                "impact": "Future-state visibility delayed — interim Phase 1 work may require adjustment when North Star field model is finalised.",
+                "barrier": "One Cisco CRM freeze — no SFDC changes in FY27 H1; Phase 2 SFDC push bypassed.",
+                "impact": "Seller-facing strategic data not visible in SFDC — Phase 2 value limited to backend/logs until OCC permits changes.",
             },
             {
-                "barrier": "Marketo vs Eloqua architecture uncertainty; potential Tealium to Adobe Capture shift (TEA002/TEA003 in review).",
-                "impact": "Re-work risk on URL and session capture logic; investment in Marketo path may be wasted if architecture pivots again.",
+                "barrier": "Adobe North Star and Reporting Team FY27 refresh schedule gate future-state visibility.",
+                "impact": "Interim UIF work may require adjustment when North Star field model is finalised — rework risk.",
             },
             {
-                "barrier": "GTMPR UTM strategy for extended fields not yet defined (UTM002 deferred).",
-                "impact": "Workfront cannot capture extended UTM fields — incomplete strategic data at source for future attribution models.",
+                "barrier": "Marketo/Eloqua architecture uncertainty; Tealium vs Adobe Capture direction (TEA002/TEA003 in review).",
+                "impact": "Re-work risk on URL and session capture; investment in one MAP path may be wasted if architecture pivots.",
             },
             {
-                "barrier": "AEM Content ID publishing process not yet operational (PUB002 in progress; Stephen Watts delivery Sep 4).",
-                "impact": "Granular content attribution on AEM pages delayed — cannot link customer journey touchpoints to Workfront content assets.",
+                "barrier": "Phase 1 incomplete — PUB002 AEM Content ID in progress; UTM002 deferred; 39 Phase 1 reqs Not Started.",
+                "impact": "All 12 Phase 2 requirements blocked — programme timeline slips with every Phase 1 delay.",
+            },
+            {
+                "barrier": "GTMPR UTM strategy for extended fields not yet defined.",
+                "impact": "Workfront cannot capture full strategic data at source — incomplete input for Phase 2 attribution models.",
             },
         ],
     },
-    "Unified Intelligence Framework (UIF) - Phase 2": {
+    "DTID & CTT Attribution Data Alignment": {
         "description": (
-            "Phase 2 transitions the organisation to Workfront IDs as the Universal Key — linking "
-            "conversations and conversions to strategic marketing data elements for both the initiative "
-            "(Channel ID) and the content asset (Content ID). It captures Content IDs on all AEM pages "
-            "to monitor every content touchpoint in the customer journey, writes last-touch Content ID "
-            "into form submissions in Marketo/Eloqua, and prepares to append strategic Workfront data "
-            "elements into SFDC for seller visibility and lead enrichment."
+            "This combined programme delivers FY27 reporting alignment across legacy and modern "
+            "identifier systems in two parts. First, DTID Channel Alignment adds a Reporting Channel "
+            "field mapping legacy Vehicle captures to FY27 Reporting Channels while preserving old "
+            "values until DOPT rewrites attribution models (12 requirements — Complete). Second, "
+            "Workfront to CTT Attribution Data Alignment adds the same strategic FY27 data elements "
+            "to CTT Activity IDs, Offer IDs, and the CTT Request Portal — enabling Workfront-first "
+            "lookup with CTT fallback when Tray/SFDC resources were unavailable due to One Cisco CRM."
         ),
         "goal": (
-            "Achieve 'Zero-Latency Deployment Readiness' — the ability to demonstrate that the moment "
-            "a Workfront activation is approved, its Channel ID and Content ID flow automatically through "
-            "AEM, MarTech, Tray, and (when permitted) SFDC, enabling true content and initiative "
-            "attribution without manual ID administration or legacy CTT dependency."
+            "Give Reporting Teams clean FY27 channel definitions and identical strategic data attributes "
+            "whether activity originates in Workfront or CTT — using simpler future-proofed logic "
+            "(look for Workfront ID first, fall back to CTT with matching fields) without SFDC or Tray "
+            "changes that would disrupt One Cisco CRM, and with data ready for when DOPT rewrites models."
         ),
         "benefits": [
-            "Workfront auto-generates Channel and Content IDs — eliminates manual ID creation for marketing teams.",
-            "Hard-linked UTM_ID on every digital URL — conversions tied directly to approved initiatives.",
-            "Content ID embedded on every AEM page — full journey attribution to specific content assets.",
-            "Identical Universal Key fields across Marketo and Eloqua — consistent ingestion regardless of MAP.",
-            "Tray dual-source logic correctly enriches leads from Workfront or legacy IDs.",
-            "Hybrid Reporting Mapping document enables YoY analysis without manual translation.",
-            "Direct path to Adobe North Star architecture — marketing intelligence captured at source.",
-        ],
-        "barrier_impacts": [
-            {
-                "barrier": "One Cisco CRM (OCC) resource constraints — SFDC push intentionally bypassed; no CRM changes permitted in FY27 H1.",
-                "impact": "Seller-facing strategic data not visible in SFDC — Phase 2 value limited to backend/logs; sales trust in enriched leads cannot be validated.",
-            },
-            {
-                "barrier": "Reporting teams cannot amend models yet — North Star visibility deferred.",
-                "impact": "Cannot prove Phase 2 attribution improvements in production dashboards — business case for full rollout remains unproven.",
-            },
-            {
-                "barrier": "Phase 2 depends on Phase 1 completion (PUB002 AEM Content ID, TEA review items).",
-                "impact": "All 12 Phase 2 requirements blocked at Not Started — programme timeline slips with every Phase 1 delay.",
-            },
-            {
-                "barrier": "No synchronized staging environment for dual-ingestion end-to-end validation (DSD003).",
-                "impact": "Cannot safely test Workfront + legacy ID coexistence — risk of production data corruption if Phase 2 launches prematurely.",
-            },
-            {
-                "barrier": "Competing priority on CTT FY27 bridge and Phase 1 delivery consumes shared integration capacity.",
-                "impact": "Phase 2 receives no dedicated build resource — remains aspirational while bridge work continues.",
-            },
-        ],
-    },
-    "DTID Channel Alignment / Reporting Channel": {
-        "description": (
-            "Because the organisation could not immediately pass UTM values with standardised FY27 "
-            "channels, platforms, and vendors, this project created a practical translation layer: "
-            "a dedicated Reporting Channel field on DTIDs that maps legacy Vehicle captures to new "
-            "FY27 Reporting Channels while preserving old vehicle values until DOPT and Reporting "
-            "Teams are ready to rewrite attribution models. It updates the CTT DTID creation, edit, "
-            "and search interfaces plus a one-time historical migration."
-        ),
-        "goal": (
-            "Align DTID records with FY27 Channel reporting for attribution models and Adobe data "
-            "capture — giving Reporting Teams clean FY27 channel definitions today without forcing "
-            "an immediate retirement of legacy DTID values or complex per-report translation logic."
-        ),
-        "benefits": [
-            "Reporting teams can use FY27 channel definitions while DTIDs remain live — no complex translation in every report.",
-            "Workfront-first lookup with CTT fallback logic becomes feasible for hybrid activity.",
-            "Clean channel selection for new DTIDs — deprecated channels hidden from UI.",
-            "Historical DTIDs migrated with audit trail — continuity for FY27 models and YoY analysis.",
-            "Data available and ready for when DOPT rewrites attribution models.",
-            "All 12 requirements delivered (Complete) — proven delivery capability under programme constraints.",
-        ],
-        "barrier_impacts": [
-            {
-                "barrier": "Full DTID audit dependency (audit as of 09 Jun 2026) required before historical migration is final.",
-                "impact": "Migration completeness depends on audit quality — gaps could leave historical records misaligned with FY27 channels.",
-            },
-            {
-                "barrier": "Downstream consumers (CTT FY27 bridge, reporting refresh) must adopt Reporting Channel field.",
-                "impact": "Value of DTID alignment is not realised until reporting models and CTT bridge reference the new field.",
-            },
-            {
-                "barrier": "Legacy DTIDs and vehicles still active in SFDC during transitional phase.",
-                "impact": "Dual identifier world persists — teams must understand both legacy vehicle and new reporting channel semantics.",
-            },
-        ],
-    },
-    "CTT & CTT Request Portal FY27 Updates": {
-        "description": (
-            "Unable to secure Tray or SFDC resources in the first half of FY27 due to the One Cisco "
-            "CRM programme, the team pivoted to a bridge approach: add the same strategic FY27 data "
-            "elements to CTT Activity IDs and Offer IDs that Workfront captures, so reporting can "
-            "use simpler future-proofed logic — first look for a Workfront ID and use corresponding "
-            "data elements; if not found, use CTT data with matching attributes. This also supports "
-            "CTT decommission planning by monitoring who still uses CTT IDs and migrating them to "
-            "Workfront. The CTT Request Portal is updated to match."
-        ),
-        "goal": (
-            "Support FY27 attribution models for channel activations and content consumption during "
-            "the hybrid period — ensuring Workfront and non-Workfront teams report on the same FY27 "
-            "data elements through CTT/portal bridge fields, without SFDC or Tray changes that would "
-            "disrupt One Cisco CRM."
-        ),
-        "benefits": [
+            "DTID Reporting Channel delivered — 12/12 Complete; legacy vehicles mapped to FY27 channels.",
+            "Workfront-first / CTT-fallback reporting logic — no complex non-1:1 mapping in every report.",
             "FY27 reporting parity between Workfront and non-Workfront teams during hybrid operating model.",
-            "Simpler reporting logic — Workfront-first lookup, CTT fallback with identical attributes.",
-            "Reduced complex 1:1 mapping logic that does not match cleanly across legacy and modern identifiers.",
-            "CTT/Activity ID remains viable for SFDC lead creation while Workfront adoption grows.",
-            "Visibility into who still uses CTT IDs — accelerates migration to Workfront.",
-            "Portal requestors get FY27 hierarchy, funnel, and stakeholder fields at intake.",
+            "Historical DTIDs migrated — continuity for FY27 models and YoY analysis.",
+            "CTT bridge keeps Activity/Offer IDs viable for SFDC lead creation while Workfront adoption grows.",
+            "Visibility into who still uses CTT IDs — accelerates migration planning.",
             "OMS and Snowflake receive FY27 attributes for attribution model consumption.",
+            "Data available now for when DOPT and Reporting Teams are ready to rewrite models.",
         ],
         "barrier_impacts": [
             {
-                "barrier": "One Cisco CRM freeze — no SFDC or Tray API changes for new CTT fields (CTT016).",
-                "impact": "Bridge data cannot flow to CRM in FY27 H1 — reporting must consume from OMS/Snowflake side only; seller enrichment delayed.",
+                "barrier": "One Cisco CRM freeze — no SFDC or Tray API changes for new CTT bridge fields.",
+                "impact": "Bridge data cannot flow to CRM in FY27 H1 — reporting must consume from OMS/Snowflake only; seller enrichment delayed.",
             },
             {
                 "barrier": "Not all teams on-boarded to Workfront; CCID still required to create SFDC leads.",
-                "impact": "CTT must remain live and enhanced rather than retired — dual tool investment continues.",
+                "impact": "CTT must remain live and enhanced — dual tool investment continues instead of retirement.",
             },
             {
-                "barrier": "Unclear architectural direction for Workfront data (raw vs business-ready dataset).",
-                "impact": "CTT bridge field design may need rework when GTMRP dataset is defined — replanning risk.",
-            },
-            {
-                "barrier": "Portal requirements (POR001–POR010) not yet started — 10 of 26 items still Not Started.",
+                "barrier": "CTT portal requirements (POR001–POR010) not started — 10 of 26 bridge items Not Started.",
                 "impact": "Non-Workfront requestors still create IDs without FY27 fields at intake — data quality gap at source.",
             },
             {
                 "barrier": "Historical Activity/Offer ID audit (CTT006/CTT018) depends on GTMPR audit capacity.",
-                "impact": "Cross-time reporting accuracy compromised until historical records are updated.",
+                "impact": "Cross-time reporting accuracy compromised until historical CTT records are updated.",
             },
             {
-                "barrier": "CTT decommission not planned FY27 — bridge scope expands while decommission BRD assumes retirement.",
-                "impact": "Competing investment in extending vs retiring CTT — technical debt and team fatigue grow.",
+                "barrier": "Full DTID audit dependency (as of 09 Jun 2026) required before migration is final.",
+                "impact": "Gaps in DTID audit could leave historical records misaligned with FY27 channels.",
+            },
+            {
+                "barrier": "Unclear raw vs business-ready Workfront data architecture.",
+                "impact": "CTT bridge field design may need rework when GTMRP dataset is defined — replanning risk.",
+            },
+            {
+                "barrier": "CTT decommission not planned FY27 — bridge scope expands while retirement BRD assumes cutover.",
+                "impact": "Competing investment in extending vs retiring CTT — technical debt grows.",
             },
         ],
     },
@@ -256,7 +203,7 @@ PROJECTS = {
             },
         ],
     },
-    "Workfront Business-Ready Dataset (GTMRP)": {
+    "Business-Ready Workfront Dataset (GTMRP)": {
         "description": (
             "This project centralises Workfront data elements into a streamlined business-ready golden "
             "dataset in Snowflake to power FY27 Attribution Models and provide Orchestration Teams with "
@@ -277,7 +224,7 @@ PROJECTS = {
             "Orchestration teams get actionable seller enrichment insights from Workfront activations.",
             "Governance framework adapts to new data elements while maintaining single source of truth.",
             "Daily refresh with failure alerting — stakeholders trust data currency.",
-            "Foundation for raw vs business-ready architectural decision — enables CTT bridge and Phase 2 alignment.",
+            "Resolves raw vs business-ready architectural decision — unblocks CTT bridge and UIF Phase 2 alignment.",
         ],
         "barrier_impacts": [
             {
@@ -285,7 +232,7 @@ PROJECTS = {
                 "impact": "Attribution models, seller enrichment, and self-service reporting blocked — teams continue ad-hoc joins with inconsistent results.",
             },
             {
-                "barrier": "Workfront field definitions still evolving with UIF Phase 1/2 and CTT bridge.",
+                "barrier": "Workfront field definitions still evolving with UIF and CTT bridge programmes.",
                 "impact": "Dataset design keeps shifting — risk of building wrong schema or repeated rework.",
             },
             {
@@ -297,7 +244,7 @@ PROJECTS = {
                 "impact": "Cannot define final seller enrichment fields — GTMRP scope remains ambiguous.",
             },
             {
-                "barrier": "CTT bridge project waiting on raw vs business-ready architectural decision.",
+                "barrier": "CTT bridge programme waiting on raw vs business-ready architectural decision.",
                 "impact": "Circular dependency — CTT bridge and GTMRP block each other; programme paralysis on data architecture.",
             },
         ],
@@ -332,7 +279,7 @@ PROJECTS = {
             },
             {
                 "barrier": "One Cisco CRM blocks SFDC tracking parameter changes required for lead creation without CCID.",
-                "impact": "Core decommission step (IT003) impossible in FY27 — CTT cannot be retired while CCID is architecturally required.",
+                "impact": "Core decommission step impossible in FY27 — CTT cannot be retired while CCID is architecturally required.",
             },
             {
                 "barrier": "Mandatory Eloqua audit/cleanup phase before OCID removal — not yet started.",
