@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the UIF single-slide summary with three-zone layout."""
+"""Build the UIF single-slide summary — barriers & stakeholder impacts focus."""
 
 from __future__ import annotations
 
@@ -11,21 +11,62 @@ from pptx.enum.shapes import MSO_SHAPE
 from pptx.enum.text import MSO_ANCHOR, PP_ALIGN
 from pptx.util import Inches, Pt
 
-DECK = Path("/workspace/GTM Performance & Readiness Project Update - August 2026.pptx")
+from project_summary_content import PROJECTS
 
-# Colours aligned to Cisco-style deck (navy header, light panels)
+DECK = Path("/workspace/GTM Performance & Readiness Project Update - August 2026.pptx")
+UIF_KEY = "Unified Intelligence Framework (UIF)"
+
 NAVY = RGBColor(0x1F, 0x4E, 0x79)
 DARK = RGBColor(0x33, 0x33, 0x33)
 MID = RGBColor(0x55, 0x55, 0x55)
-ACCENT = RGBColor(0xC0, 0x50, 0x00)  # warning orange
-P1_FILL = RGBColor(0xE8, 0xEF, 0xF4)
-P2_FILL = RGBColor(0xE2, 0xEF, 0xE2)
+ACCENT = RGBColor(0xC0, 0x50, 0x00)
+CONTEXT_FILL = RGBColor(0xE8, 0xEF, 0xF4)
 RISK_FILL = RGBColor(0xFD, 0xF2, 0xE9)
+STAKEHOLDER_FILL = RGBColor(0xFF, 0xF8, 0xE8)
 WHITE = RGBColor(0xFF, 0xFF, 0xFF)
 BORDER = RGBColor(0xCC, 0xCC, 0xCC)
 
+# Barrier → stakeholders affected → impact (management-facing)
+UIF_STAKEHOLDER_BARRIERS = [
+    {
+        "barrier": "One Cisco CRM freeze — no SFDC changes permitted FY27 H1",
+        "stakeholders": "Sales, Orchestration, SFDC BCO",
+        "impact": "Seller-facing Workfront strategic data cannot appear in CRM; Phase 2 value trapped in backend logs; sales cannot validate enriched lead quality or act on initiative/content context.",
+    },
+    {
+        "barrier": "CCID & DTID still mandatory for SFDC lead creation, MSP & Last Touch reporting",
+        "stakeholders": "Marketing, Reporting, GTMPR",
+        "impact": "Teams must maintain dual manual governance (Workfront + legacy IDs); reporting cannot fully adopt UTM/Channel ID; attribution figures remain at risk of CCID mixing.",
+    },
+    {
+        "barrier": "Incomplete Workfront adoption — not all teams onboarded",
+        "stakeholders": "Marketing, CTT requestors, GTMPR",
+        "impact": "Non-Workfront teams continue CTT legacy processes; UIF ROI capped; hybrid operating model persists longer than planned.",
+    },
+    {
+        "barrier": "Adobe North Star & Reporting FY27 refresh schedule not locked",
+        "stakeholders": "Reporting, DOPT, GTMPR",
+        "impact": "Interim UIF field model may require rework; reporting teams delay model updates; North Star visibility deferred.",
+    },
+    {
+        "barrier": "Tealium vs Adobe Capture undecided; Marketo/Eloqua path uncertain (TEA002/003)",
+        "stakeholders": "MarTech BCOs, Tealium, Web Analytics",
+        "impact": "URL/session capture logic in review; investment in one MAP stack may be wasted; re-work risk on in-flight tagging.",
+    },
+    {
+        "barrier": "Business-Ready Workfront Dataset (GTMRP) not started — raw vs golden schema unresolved",
+        "stakeholders": "Reporting, Data Engineering, Orchestration",
+        "impact": "No single Workfront source of truth for attribution models; analysts continue ad-hoc joins; CTT bridge and UIF field definitions keep shifting.",
+    },
+    {
+        "barrier": "Phase 1 incomplete — PUB002 AEM Content ID in progress; 39 reqs Not Started; UTM002 deferred",
+        "stakeholders": "Publishing, Web, GTMPR, Phase 2 teams",
+        "impact": "Content-level journey attribution blocked; all 12 Phase 2 requirements cannot start; programme timeline slips with every Phase 1 delay.",
+    },
+]
 
-def _set_margin(tf, top=0.05, bottom=0.05, left=0.08, right=0.08):
+
+def _set_margin(tf, top=0.04, bottom=0.04, left=0.07, right=0.07):
     tf.margin_top = Inches(top)
     tf.margin_bottom = Inches(bottom)
     tf.margin_left = Inches(left)
@@ -43,43 +84,7 @@ def _add_run(paragraph, text, *, size=10, bold=False, color=DARK, italic=False):
     return run
 
 
-def _add_line(tf, text="", *, size=10, bold=False, color=DARK, space_before=0, space_after=3, level=0):
-    p = tf.paragraphs[0] if not tf.paragraphs[0].text and len(tf.paragraphs) == 1 else tf.add_paragraph()
-    if tf.paragraphs[0].text == "" and text and p == tf.paragraphs[0]:
-        pass
-    elif not text and p.text == "" and p is tf.paragraphs[0]:
-        return p
-    p.level = level
-    p.space_before = Pt(space_before)
-    p.space_after = Pt(space_after)
-    if text:
-        _add_run(p, text, size=size, bold=bold, color=color)
-    return p
-
-
-def _add_mixed_line(tf, parts, space_after=3):
-    """parts: list of (text, bold, size, color)"""
-    p = tf.add_paragraph()
-    p.space_after = Pt(space_after)
-    for text, bold, size, color in parts:
-        _add_run(p, text, size=size, bold=bold, color=color)
-    return p
-
-
-def _add_bullet(tf, text, *, size=9, bold_prefix=None, space_after=2):
-    p = tf.add_paragraph()
-    p.level = 0
-    p.space_after = Pt(space_after)
-    bullet = "• "
-    if bold_prefix:
-        _add_run(p, bullet + bold_prefix, size=size, bold=True, color=DARK)
-        _add_run(p, text, size=size, bold=False, color=MID)
-    else:
-        _add_run(p, bullet + text, size=size, color=MID)
-    return p
-
-
-def _rounded_box(slide, left, top, width, height, fill):
+def _box(slide, left, top, width, height, fill):
     shape = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, left, top, width, height)
     shape.fill.solid()
     shape.fill.fore_color.rgb = fill
@@ -88,17 +93,36 @@ def _rounded_box(slide, left, top, width, height, fill):
     return shape
 
 
+def _barrier_block(tf, item, *, size=8):
+    p = tf.add_paragraph()
+    p.space_before = Pt(6)
+    p.space_after = Pt(1)
+    _add_run(p, "▸ ", size=size, bold=True, color=ACCENT)
+    _add_run(p, item["barrier"], size=size, bold=True, color=DARK)
+
+    p2 = tf.add_paragraph()
+    p2.space_after = Pt(1)
+    _add_run(p2, "   Stakeholders: ", size=size - 1, bold=True, color=NAVY)
+    _add_run(p2, item["stakeholders"], size=size - 1, color=MID)
+
+    p3 = tf.add_paragraph()
+    p3.space_after = Pt(4)
+    _add_run(p3, "   Impact: ", size=size - 1, bold=True, color=ACCENT)
+    _add_run(p3, item["impact"], size=size - 1, color=MID)
+
+
 def build_uif_slide(prs: Presentation):
-    """Add UIF summary slide using blank layout."""
+    """Single UIF slide: compact goal/benefits top; barriers & stakeholder impacts dominate."""
     layout_idx = 43 if len(prs.slide_layouts) > 43 else len(prs.slide_layouts) - 1
     slide = prs.slides.add_slide(prs.slide_layouts[layout_idx])
 
+    data = PROJECTS[UIF_KEY]
     sw = prs.slide_width
     sh = prs.slide_height
-    m = Inches(0.25)
+    m = Inches(0.22)
 
-    # ── Top banner ──────────────────────────────────────────────────────
-    banner_h = Inches(1.05)
+    # ── Header ────────────────────────────────────────────────────────────
+    banner_h = Inches(0.95)
     banner = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, m, m, sw - 2 * m, banner_h)
     banner.fill.solid()
     banner.fill.fore_color.rgb = NAVY
@@ -107,212 +131,133 @@ def build_uif_slide(prs: Presentation):
     tf = banner.text_frame
     tf.word_wrap = True
     tf.vertical_anchor = MSO_ANCHOR.MIDDLE
-    _set_margin(tf, 0.08, 0.06, 0.15, 0.15)
+    _set_margin(tf, 0.06, 0.05, 0.12, 0.12)
 
     p0 = tf.paragraphs[0]
-    p0.alignment = PP_ALIGN.LEFT
-    _add_run(p0, "Unified Intelligence Framework (UIF): Marketing Attribution & Intelligence", size=20, bold=True, color=WHITE)
-
+    _add_run(p0, "Unified Intelligence Framework (UIF): Phase 1 + Phase 2", size=18, bold=True, color=WHITE)
     p1 = tf.add_paragraph()
-    p1.space_before = Pt(4)
-    _add_run(p1, "Goal: ", size=11, bold=True, color=WHITE)
+    p1.space_before = Pt(3)
+    _add_run(p1, "Goal: ", size=10, bold=True, color=WHITE)
     _add_run(
         p1,
-        "Transitioning from legacy CCID/DTID tagging to industry-standard, automated Workfront "
-        "Universal Key attribution without interrupting current business operations.",
-        size=11,
-        bold=False,
+        "Move from legacy CCID/DTID to automated Workfront Universal Key attribution across "
+        "Marketo & Eloqua — without breaking FY27 reporting, lead creation, or sales operations.",
+        size=10,
         color=WHITE,
     )
 
-    # ── Content area geometry ───────────────────────────────────────────
-    content_top = m + banner_h + Inches(0.12)
-    content_h = sh - content_top - m
-    gap = Inches(0.12)
-    usable_w = sw - 2 * m
+    # ── Context strip (combined programme + benefits) ───────────────────────
+    ctx_top = m + banner_h + Inches(0.08)
+    ctx_h = Inches(1.55)
+    ctx_w = sw - 2 * m
 
-    left_w = usable_w * 0.29
-    center_w = usable_w * 0.29
-    right_w = usable_w * 0.42 - gap
+    ctx_box = _box(slide, m, ctx_top, ctx_w, ctx_h, CONTEXT_FILL)
+    tfc = ctx_box.text_frame
+    tfc.word_wrap = True
+    _set_margin(tfc, 0.05, 0.04, 0.1, 0.1)
 
-    left_x = m
-    center_x = left_x + left_w + gap
-    right_x = center_x + center_w + gap
+    h = tfc.paragraphs[0]
+    _add_run(h, "What We Are Delivering (Phase 1 + Phase 2 Combined)", size=10, bold=True, color=NAVY)
 
-    # ── Phase 1 panel ───────────────────────────────────────────────────
-    p1_box = _rounded_box(slide, left_x, content_top, left_w, content_h, P1_FILL)
-    tf1 = p1_box.text_frame
-    tf1.word_wrap = True
-    _set_margin(tf1)
-
-    h = tf1.paragraphs[0]
-    _add_run(h, "Phase 1 — Hybrid Foundation", size=12, bold=True, color=NAVY)
-    p = tf1.add_paragraph()
-    _add_run(p, "(In Progress / Near-Term)", size=9, italic=True, color=MID)
-    p = tf1.add_paragraph()
-    p.space_before = Pt(6)
-    _add_run(p, "Focus: ", size=9, bold=True, color=DARK)
-    _add_run(p, "Parallel dual ingestion & standardized data schema.", size=9, color=MID)
-
-    p = tf1.add_paragraph()
-    p.space_before = Pt(8)
-    _add_run(p, "Key Capabilities:", size=10, bold=True, color=NAVY)
-    for item in [
-        "Consistent UTM governance across Workfront, Stensul, and URL Builders.",
-        "Capture & preservation of utm_id, utm_medium, and utm_source at all lead touchpoints.",
-        "Dual ingestion supporting legacy CCID/DTID alongside new UTM parameters.",
-    ]:
-        _add_bullet(tf1, item, size=8)
-
-    p = tf1.add_paragraph()
-    p.space_before = Pt(8)
-    _add_run(p, "Business Value:", size=10, bold=True, color=NAVY)
-    for prefix, rest in [
-        ("Zero Downtime: ", "Seamless transition with no \"big-bang\" cutover or reporting breakage."),
-        ("Immediate Attribution: ", "Preserves source UTMs and legacy IDs at initial lead creation."),
-        ("Single Source of Truth: ", "Standardized Snowflake publishing schema for reporting teams."),
-    ]:
-        _add_bullet(tf1, rest, size=8, bold_prefix=prefix)
-
-    # ── Phase 2 panel ───────────────────────────────────────────────────
-    p2_box = _rounded_box(slide, center_x, content_top, center_w, content_h, P2_FILL)
-    tf2 = p2_box.text_frame
-    tf2.word_wrap = True
-    _set_margin(tf2)
-
-    h = tf2.paragraphs[0]
-    _add_run(h, "Phase 2 — Universal Key Automation", size=12, bold=True, color=NAVY)
-    p = tf2.add_paragraph()
-    _add_run(p, "(Future State)", size=9, italic=True, color=MID)
-    p = tf2.add_paragraph()
-    p.space_before = Pt(6)
-    _add_run(p, "Focus: ", size=9, bold=True, color=DARK)
-    _add_run(p, "End-to-end automation via Workfront IDs across Marketo & Eloqua.", size=9, color=MID)
-
-    p = tf2.add_paragraph()
-    p.space_before = Pt(8)
-    _add_run(p, "Key Capabilities:", size=10, bold=True, color=NAVY)
-    for item in [
-        "Workfront auto-generates Channel & Content IDs (eliminates manual generation).",
-        "Content IDs embedded across all AEM pages and form submissions.",
-        "Identical Universal Key schema across both Marketo and Eloqua.",
-    ]:
-        _add_bullet(tf2, item, size=8)
-
-    p = tf2.add_paragraph()
-    p.space_before = Pt(8)
-    _add_run(p, "Business Value:", size=10, bold=True, color=NAVY)
-    for prefix, rest in [
-        ("Automation: ", "Zero-Latency Deployment Readiness from Workfront through MarTech stack."),
-        ("Full-Journey Attribution: ", "Complete content-level insight from touchpoint to form submission."),
-        ("Strategic Alignment: ", "Direct path to the Adobe North Star architecture."),
-    ]:
-        _add_bullet(tf2, rest, size=8, bold_prefix=prefix)
-
-    # ── Right risks panel ───────────────────────────────────────────────
-    risk_box = _rounded_box(slide, right_x, content_top, right_w, content_h, RISK_FILL)
-    tfr = risk_box.text_frame
-    tfr.word_wrap = True
-    _set_margin(tfr)
-
-    h = tfr.paragraphs[0]
-    _add_run(h, "⚠ ", size=12, bold=True, color=ACCENT)
-    _add_run(h, "Key Management Decision & Barrier Summary", size=11, bold=True, color=NAVY)
-
-    p = tfr.add_paragraph()
-    p.space_before = Pt(4)
-    _add_run(p, "Executive Summary of Risks & Dependencies", size=9, bold=True, italic=True, color=MID)
-
-    p = tfr.add_paragraph()
-    p.space_before = Pt(10)
-    _add_run(p, "System Dependencies", size=10, bold=True, color=NAVY)
-
-    p = tfr.add_paragraph()
-    p.space_after = Pt(2)
-    _add_run(p, "• ", size=8, color=MID)
-    _add_run(p, "One Cisco CRM Freeze (FY27 H1): ", size=8, bold=True, color=DARK)
-    _add_run(p, "SFDC changes paused; seller-facing data delayed until release.", size=8, color=MID)
-
-    _add_bullet(
-        tfr,
-        "CCID/DTID remains mandatory for SFDC lead creation, MSP, and Last Touch reporting.",
-        size=8,
-        bold_prefix="Legacy Overlap: ",
-    )
-
-    p = tfr.add_paragraph()
-    p.space_before = Pt(10)
-    _add_run(p, "Operational & Adoption Barriers", size=10, bold=True, color=NAVY)
-
-    last_p = tfr.add_paragraph()
-    last_p.space_after = Pt(2)
-    _add_run(last_p, "• ", size=8, color=MID)
-    _add_run(last_p, "Incomplete Workfront Adoption: ", size=8, bold=True, color=DARK)
+    p = tfc.add_paragraph()
+    p.space_before = Pt(3)
     _add_run(
-        last_p,
-        "Teams outside Workfront still rely on manual CTT legacy processes, capping ROI.",
+        p,
+        "Phase 1 (now): UTM governance, dual ingestion of legacy + modern IDs, Snowflake-ready schema.  "
+        "Phase 2 (next): Workfront auto-generates Channel & Content IDs, embedded on AEM pages & form submissions, "
+        "flowing through MarTech to SFDC when permitted.",
         size=8,
         color=MID,
     )
 
-    last_p = tfr.add_paragraph()
-    last_p.space_after = Pt(2)
-    _add_run(last_p, "• ", size=8, color=MID)
-    _add_run(last_p, "Architecture & Data Governance Pivots: ", size=8, bold=True, color=DARK)
+    p = tfc.add_paragraph()
+    p.space_before = Pt(5)
+    _add_run(p, "Key Business Benefits: ", size=8, bold=True, color=NAVY)
+    benefits_short = [
+        "No big-bang cutover — reporting continuity during transition",
+        "Accurate attribution at lead creation today",
+        "Zero-latency Workfront-to-Marketo/Eloqua automation (Phase 2)",
+        "Full content-journey insight & Adobe North Star alignment",
+    ]
+    _add_run(p, "  •  ".join(benefits_short), size=7.5, color=MID)
+
+    # ── Main focus: Barriers & Stakeholder Impacts (~65% of slide) ────────
+    risk_top = ctx_top + ctx_h + Inches(0.08)
+    risk_h = sh - risk_top - m
+
+    risk_box = _box(slide, m, risk_top, ctx_w, risk_h, RISK_FILL)
+    tfr = risk_box.text_frame
+    tfr.word_wrap = True
+    _set_margin(tfr, 0.06, 0.05, 0.1, 0.1)
+
+    h = tfr.paragraphs[0]
+    _add_run(h, "⚠  ", size=13, bold=True, color=ACCENT)
+    _add_run(h, "Barriers & Stakeholder Impacts — Why Delivery Is Constrained", size=12, bold=True, color=NAVY)
+
+    p = tfr.add_paragraph()
+    p.space_before = Pt(2)
     _add_run(
-        last_p,
-        "Pending decisions on Tealium vs. Adobe Capture and unpublished Business-Ready "
-        "Datasets (BRD) create rework risk for reporting guidance.",
+        p,
+        "We are actively delivering UIF capabilities, but upstream dependencies and adoption gaps "
+        "limit value realisation for key stakeholder groups:",
         size=8,
+        italic=True,
+        color=MID,
+    )
+
+    # Two columns of barrier blocks inside the risk panel
+    col_gap = Inches(0.15)
+    col_w = (ctx_w - col_gap) / 2
+    left_items = UIF_STAKEHOLDER_BARRIERS[:4]
+    right_items = UIF_STAKEHOLDER_BARRIERS[4:]
+
+    # Left sub-column
+    left_col = _box(
+        slide,
+        m + Inches(0.1),
+        risk_top + Inches(0.62),
+        col_w - Inches(0.05),
+        risk_h - Inches(0.72),
+        STAKEHOLDER_FILL,
+    )
+    tfl = left_col.text_frame
+    tfl.word_wrap = True
+    _set_margin(tfl, 0.04, 0.03, 0.06, 0.06)
+    for item in left_items:
+        _barrier_block(tfl, item, size=7.5)
+
+    # Right sub-column
+    right_col = _box(
+        slide,
+        m + Inches(0.1) + col_w + col_gap,
+        risk_top + Inches(0.62),
+        col_w - Inches(0.05),
+        risk_h - Inches(0.72),
+        STAKEHOLDER_FILL,
+    )
+    tfr2 = right_col.text_frame
+    tfr2.word_wrap = True
+    _set_margin(tfr2, 0.04, 0.03, 0.06, 0.06)
+    for item in right_items:
+        _barrier_block(tfr2, item, size=7.5)
+
+    # Footer callout inside risk box
+    p = tfr.add_paragraph()
+    p.space_before = Pt(2)
+    _add_run(p, "Management ask: ", size=8, bold=True, color=NAVY)
+    _add_run(
+        p,
+        "Prioritise OCC engagement window, lock Reporting/North Star field catalog, ring-fence GTMRP "
+        "foundation capacity, and complete Phase 1 publishing (PUB002) to unblock Phase 2 stakeholders.",
+        size=7.5,
         color=MID,
     )
 
     return slide
 
 
-def replace_uif_slides_in_deck(deck_path: Path = DECK):
-    """Replace multi-slide UIF section with the single summary slide."""
-    prs = Presentation(str(deck_path))
-
-    # Find UIF section slides to remove (section title + 4 content slides)
-    titles_to_remove = []
-    for i, slide in enumerate(prs.slides):
-        title = slide.shapes.title.text if slide.shapes.title else ""
-        if title == "Unified Intelligence Framework (UIF)" or title.startswith(
-            "Unified Intelligence Framework (UIF) —"
-        ):
-            titles_to_remove.append(i)
-
-    # Remove in reverse order
-    for idx in reversed(titles_to_remove):
-        r_id = prs.slides._sldIdLst[idx]  # noqa: SLF001
-        prs.part.drop_rel(r_id.rId)
-        del prs.slides._sldIdLst[idx]
-
-    # Insert new slide after Programme Overview (slide index 4 = 5th slide, 0-based index 4)
-    # After removal, find "Portfolio context" slide index
-    insert_after = 4  # default: after overview content slide
-    for i, slide in enumerate(prs.slides):
-        if slide.shapes.title and "Portfolio context" in slide.shapes.title.text:
-            insert_after = i
-            break
-
-    # Build slide at end then reorder — python-pptx lacks insert; add at end and move
-    build_uif_slide(prs)
-    new_idx = len(prs.slides) - 1
-    sldIdLst = prs.slides._sldIdLst
-    el = sldIdLst[new_idx]
-    del sldIdLst[new_idx]
-    sldIdLst.insert(insert_after + 1, el)
-
-    prs.save(str(deck_path))
-    print(f"UIF summary slide inserted at position {insert_after + 2} in {deck_path}")
-    print(f"Total slides: {len(prs.slides)}")
-
-
 def build_standalone(output: Path | None = None):
     base = Presentation(str(DECK))
-    trim_count = len(base.slides)
     while len(base.slides) > 0:
         r_id = base.slides._sldIdLst[0]  # noqa: SLF001
         base.part.drop_rel(r_id.rId)
